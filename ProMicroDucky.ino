@@ -2,12 +2,12 @@
 // ------------------------------------
 // Konejšn                            -
 //                                    -
-// Pro Micro:VCC -> 5V                -
-// karteGND -> GND                    -
-// D10 (SS) -> CS                     -
-// D16 (MISO) -> DO                   -
-// D15 (MOSI) -> DI                   -
-// D14 (SCK) -> CLK na SD karte       -
+// VCC -> VCC na SD karte             -
+// GND -> GND na SD karte             -
+// D14 (MISO) -> MISO na SD karte     -
+// D16 (MOSI) -> MOSI na SD karte     -
+// D15 (SCK) -> SCK na SD karte       -
+// D10 (SS) -> CS na SD karte         -
 //                                    -
 // ------------------------------------
 
