@@ -16,8 +16,8 @@ Code for make DIY Rubber Ducky lacno
 - GUI Keys like : GUI,CTRL, SPACE ...
 
 # EXAMPLE
-GUI r
-DELAY 100
-STRING Hello this is test
-DELAY 1000
-ENTER
+- GUI r
+- DELAY 100
+- STRING Hello this is test
+- DELAY 1000
+- ENTER
