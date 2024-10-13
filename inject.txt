@@ -1,0 +1,5 @@
+DELAY 1000
+GUI r
+STRING Hello This is Test
+DELAY 1000
+ENTER
