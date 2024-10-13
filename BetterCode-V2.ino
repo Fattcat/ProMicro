@@ -1,23 +1,4 @@
-// Here GOING TO BE ADDED stuff like :
-// 1. RED, GREEN, ORANGE LEDS Indicators :
-// - RED LED    - If LIGHTS then it Indicates CODE Error or else error
-// - GREEN LED  - If LIGHTS then it Indicates CODE 
-// - ORANGE LED - If LIGHTS then it Indicates CODE Code still in process (Code still running)
-// COMMANDS :
-// - Blink(RED_LED, int times) // Which LED and how many times to blink
-// --> Blink(RED_LED, 3)
-
-// 2. ADDed Function for MOUSE MOVING
-// - void(MOUSE_Move_Left, int pixels)
-// - void(MOUSE_Move_Right, int pixels)
-// - void(MOUSE_Move_Down, int pixels)
-// - void(MOUSE_Move_Up, int pixels)
-// - void(Mouse_Click) // Just click
-// - void(Mouse_Click, int x_position, int y_position) // Click on x, y Position
-// And Other ...
-// Code
-
-// Konečné pripojenie SD karty a Pro Micro
+//Connection SD karty a Pro Micro
 // ------------------------------------
 // VCC -> VCC na SD karte
 // GND -> GND na SD karte
@@ -26,18 +7,17 @@
 // D15 (SCK) -> SCK na SD karte
 // D10 (SS) -> CS na SD karte
 // ------------------------------------
-
+// Code
 #include <SPI.h>
 #include <SD.h>
 #include <string.h>
 #include "Keyboard.h"
-#include "Mouse.h"  // Pridáme podporu pre myš
+#include "Mouse.h"
 
 #define GREEN_LED 3  // GREEN LED Pin 3 na Pro Micro (označuje dokončenie)
 #define ORANGE_LED 4 // ORANGE LED Pin 4 na Pro Micro (označuje prebiehajúce spracovanie)
 
 File myFile;
-boolean first = true;
 String DEFAULT_FILE_NAME = "inject.txt";
 
 void setup() {
@@ -48,8 +28,15 @@ void setup() {
   // Rozsvietime oranžovú LED, kód sa začína spracovávať
   digitalWrite(ORANGE_LED, HIGH);
 
-  // PIN CS JE na Pri Micro Pine číslo 10
+  // Inicializujeme SD kartu
   if (!SD.begin(10)) {
+    // Ak sa SD karta nedá inicializovať, blíkame oranžovou LED a vraciame sa
+    for (int i = 0; i < 9; i++) {
+      digitalWrite(ORANGE_LED, HIGH);
+      delay(100);
+      digitalWrite(ORANGE_LED, LOW);
+      delay(100);
+    }
     return;
   }
 
@@ -62,13 +49,15 @@ void setup() {
     while (myFile.available()) {
       char m = myFile.read();
       if (m == '\n') {
-        Line(line);
+        processLine(line); // Zmenená funkcia pre spracovanie riadka
         line = "";
-      } else if ((int)m != 13) {
+      } else if (m != '\r') { // Ignorujeme carriage return
         line += m;
       }
     }
-    Line(line);
+    if (line.length() > 0) { // Spracujeme posledný riadok, ak existuje
+      processLine(line);
+    }
 
     myFile.close();
   }
@@ -76,63 +65,89 @@ void setup() {
   Keyboard.end();
   Mouse.end();  // Ukončíme podporu myši po spracovaní
 
-  // Keď je kód ukončený, zhasneme oranžovú LED a rozsvietime zelenú
-  digitalWrite(ORANGE_LED, LOW);  // Zhasneme oranžovú LED
-  digitalWrite(GREEN_LED, HIGH);  // Rozsvietime zelenú LED (signalizuje ukončenie)
+  // Zhasneme oranžovú LED a rozsvietime zelenú
+  digitalWrite(ORANGE_LED, LOW);
+  digitalWrite(GREEN_LED, HIGH);
 }
 
-void Line(String l) {
-  int space_1 = l.indexOf(" ");
-  if (space_1 == -1) {
-    Press(l);
-  } else if (l.substring(0, space_1) == "STRING") {
-    Keyboard.print(l.substring(space_1 + 1));
-  } else if (l.substring(0, space_1) == "DELAY") {
-    int delaytime = l.substring(space_1 + 1).toInt();
-    delay(delaytime);
-  } else if (l.substring(0, space_1) == "Mouse_Move_RIGHT") {
-    int move_amount = l.substring(space_1 + 1).toInt();
-    Mouse.move(move_amount, 0);  // Pohyb myši do prava
-  } else if (l.substring(0, space_1) == "Mouse_Move_LEFT") {
-    int move_amount = l.substring(space_1 + 1).toInt();
-    Mouse.move(-move_amount, 0);  // Pohyb myši do ľava
-  } else if (l.substring(0, space_1) == "Mouse_Move_UP") {
-    int move_amount = l.substring(space_1 + 1).toInt();
-    Mouse.move(0, -move_amount);  // Pohyb myši hore
-  } else if (l.substring(0, space_1) == "Mouse_Move_DOWN") {
-    int move_amount = l.substring(space_1 + 1).toInt();
-    Mouse.move(0, move_amount);  // Pohyb myši dole
-  } else if (l.substring(0, space_1) == "REM") {
-    // Komentár, nič nerobiť
-  } else {
-    String remain = l;
-    while (remain.length() > 0) {
-      int latest_space = remain.indexOf(" ");
-      if (latest_space == -1) {
-        Press(remain);
-        remain = "";
-      } else {
-        Press(remain.substring(0, latest_space));
-        remain = remain.substring(latest_space + 1);
-      }
-      delay(5);
+void processLine(String line) {
+  // Rozdelíme riadok na jednotlivé príkazy
+  int spaceIndex = line.indexOf(" ");
+  String command = (spaceIndex == -1) ? line : line.substring(0, spaceIndex);
+  String parameters = (spaceIndex == -1) ? "" : line.substring(spaceIndex + 1);
+
+  if (command.equals("STRING")) {
+    Keyboard.print(parameters);
+  } else if (command.equals("DELAY")) {
+    int delayTime = parameters.toInt();
+    delay(delayTime);
+  } else if (command.equals("Mouse_Click_LEFT")) {
+    Mouse.click(MOUSE_LEFT); // Klikneme ľavým tlačidlom myši
+  } else if (command.equals("Mouse_Click_RIGHT")) {
+    Mouse.click(MOUSE_RIGHT); // Klikneme pravým tlačidlom myši
+  } else if (command.startsWith("Mouse_Move_")) {
+    int move_amount = parameters.toInt();
+    if (command.equals("Mouse_Move_RIGHT")) {
+      Mouse.move(move_amount, 0);  // Pohyb myši doprava
+    } else if (command.equals("Mouse_Move_LEFT")) {
+      Mouse.move(-move_amount, 0);  // Pohyb myši doľava
+    } else if (command.equals("Mouse_Move_UP")) {
+      Mouse.move(0, -move_amount);  // Pohyb myši hore
+    } else if (command.equals("Mouse_Move_DOWN")) {
+      Mouse.move(0, move_amount);  // Pohyb myši dole
     }
+  } else if (command.equals("REM")) {
+    // Komentár, nič nerobíme
+  } else {
+    handleKeyCombination(command, parameters);
   }
 
   Keyboard.releaseAll();
 }
 
-void Press(String b) {
+void handleKeyCombination(String modifier, String keys) {
+  // Stlačíme modifikátor (ALT, GUI, atď.)
+  if (modifier.equals("ALT")) {
+    Keyboard.press(KEY_LEFT_ALT);
+  } else if (modifier.equals("CTRL")) {
+    Keyboard.press(KEY_LEFT_CTRL);
+  } else if (modifier.equals("SHIFT")) {
+    Keyboard.press(KEY_LEFT_SHIFT);
+  } else if (modifier.equals("GUI")) {
+    Keyboard.press(KEY_LEFT_GUI);
+  }
+
+  // Rozdelíme ďalšie kľúče, ktoré sa majú stlačiť
+  String key;
+  while (keys.length() > 0) {
+    int spaceIndex = keys.indexOf(" ");
+    if (spaceIndex == -1) {
+      key = keys; // posledný kľúč
+      keys = "";  // Prázdny reťazec
+    } else {
+      key = keys.substring(0, spaceIndex);
+      keys = keys.substring(spaceIndex + 1);
+    }
+
+    // Stlačíme klávesu
+    pressKey(key);
+  }
+
+  // Uvoľníme modifikátor
+  if (modifier.equals("ALT")) {
+    Keyboard.release(KEY_LEFT_ALT);
+  } else if (modifier.equals("CTRL")) {
+    Keyboard.release(KEY_LEFT_CTRL);
+  } else if (modifier.equals("SHIFT")) {
+    Keyboard.release(KEY_LEFT_SHIFT);
+  } else if (modifier.equals("GUI")) {
+    Keyboard.release(KEY_LEFT_GUI);
+  }
+}
+
+void pressKey(String b) {
   if (b.equals("ENTER")) {
     Keyboard.press(KEY_RETURN);
-  } else if (b.equals("CTRL")) {
-    Keyboard.press(KEY_LEFT_CTRL);
-  } else if (b.equals("SHIFT")) {
-    Keyboard.press(KEY_LEFT_SHIFT);
-  } else if (b.equals("ALT")) {
-    Keyboard.press(KEY_LEFT_ALT);
-  } else if (b.equals("GUI")) {
-    Keyboard.press(KEY_LEFT_GUI);
   } else if (b.equals("UP") || b.equals("UPARROW")) {
     Keyboard.press(KEY_UP_ARROW);
   } else if (b.equals("DOWN") || b.equals("DOWNARROW")) {
@@ -159,35 +174,16 @@ void Press(String b) {
     Keyboard.press(KEY_END);
   } else if (b.equals("CAPSLOCK")) {
     Keyboard.press(KEY_CAPS_LOCK);
-  } else if (b.equals("F1")) {
-    Keyboard.press(KEY_F1);
-  } else if (b.equals("F2")) {
-    Keyboard.press(KEY_F2);
-  } else if (b.equals("F3")) {
-    Keyboard.press(KEY_F3);
-  } else if (b.equals("F4")) {
-    Keyboard.press(KEY_F4);
-  } else if (b.equals("F5")) {
-    Keyboard.press(KEY_F5);
-  } else if (b.equals("F6")) {
-    Keyboard.press(KEY_F6);
-  } else if (b.equals("F7")) {
-    Keyboard.press(KEY_F7);
-  } else if (b.equals("F8")) {
-    Keyboard.press(KEY_F8);
-  } else if (b.equals("F9")) {
-    Keyboard.press(KEY_F9);
-  } else if (b.equals("F10")) {
-    Keyboard.press(KEY_F10);
-  } else if (b.equals("F11")) {
-    Keyboard.press(KEY_F11);
-  } else if (b.equals("F12")) {
-    Keyboard.press(KEY_F12);
+  } else if (b.startsWith("F")) {
+    int functionKey = b.substring(1).toInt(); // Získa číslo klávesy F
+    if (functionKey >= 1 && functionKey <= 12) {
+      Keyboard.press(KEY_F1 + functionKey - 1); // Prevod na správny kláves
+    }
   } else if (b.equals("SPACE")) {
     Keyboard.press(' ');
   } else {
     char c = b[0];
-    uint8_t keyCode = OemKeyToKeyCode(c);
+    uint8_t keyCode = oemKeyToKeyCode(c);
     if (keyCode != 0) {
       Keyboard.press(keyCode);
     }
@@ -195,7 +191,7 @@ void Press(String b) {
 }
 
 // Funkcia pre prevod hexadecimálneho kódu na klávesu
-uint8_t OemKeyToKeyCode(char c) {
+uint8_t oemKeyToKeyCode(char c) {
   switch (c) {
     case 'a':
     case 'A':
@@ -211,7 +207,4 @@ uint8_t OemKeyToKeyCode(char c) {
       return 0;
   }
 }
-
-void loop() {
-  // nič sa nestane po nastavení
-}
+void loop() {} // nič sa nestane po nastavení 
