@@ -19,7 +19,7 @@ Code for make DIY Rubber Ducky lacno
 - REM (this is just comment for better understand what will be happened)
 - GUI Keys like : GUI,CTRL, SPACE ...
 
-# EXAMPLE
+# Example Code (or u can use inject.txt file)
 - GUI r
 - DELAY 100
 - STRING Hello this is test
@@ -34,4 +34,7 @@ Code for make DIY Rubber Ducky lacno
 - DELAY 1000
 - Mouse_Move_DOWN 30
 - DELAY 1000
+- Mouse_Click_LEFT
+- DELAY 1000
+- Mouse_Click_RIGHT
 
