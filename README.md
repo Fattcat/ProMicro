@@ -2,12 +2,16 @@
 Code for make DIY Rubber Ducky lacno
 
 # Connection
-- VCC -> VCC na SD karte
-- GND -> GND na SD karte
-- D14 (MISO) -> MISO na SD karte
-- D16 (MOSI) -> MOSI na SD karte
-- D15 (SCK) -> SCK na SD karte
-- D10 (SS) -> CS na SD karte
+## Pro Micro -> SD Card Module
+- VCC -> VCC
+- GND -> GND
+- D14 MISO
+- D16 MOSI
+- D15 SCK
+- D10 CS (or SS)
+## LED Diodes
+- GREEN_LED (Through 220 ohm Resistor) D3
+- LED_ORANGE (Through 220 ohm Resistor) D4
 
 # Commands
 - STRING <Something to type on keyboard>
@@ -21,3 +25,13 @@ Code for make DIY Rubber Ducky lacno
 - STRING Hello this is test
 - DELAY 1000
 - ENTER
+- REM This is just COMMENT Test 123
+- Mouse_Move_LEFT 30
+- DELAY 1000
+- Mouse_Move_RIGHT 30
+- DELAY 1000
+- Mouse_Move_UP 30
+- DELAY 1000
+- Mouse_Move_DOWN 30
+- DELAY 1000
+
