@@ -12,7 +12,7 @@
 #include <SD.h>
 #include <string.h>
 #include "Keyboard.h"
-#include "Mouse.h"
+#include "Mouse.h"  // Pridáme podporu pre myš
 
 #define GREEN_LED 3  // GREEN LED Pin 3 na Pro Micro (označuje dokončenie)
 #define ORANGE_LED 4 // ORANGE LED Pin 4 na Pro Micro (označuje prebiehajúce spracovanie)
@@ -207,4 +207,7 @@ uint8_t oemKeyToKeyCode(char c) {
       return 0;
   }
 }
-void loop() {} // nič sa nestane po nastavení 
+
+void loop() {
+  // nič sa nestane po nastavení
+}
