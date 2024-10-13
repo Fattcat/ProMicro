@@ -14,10 +14,9 @@
 // - void(MOUSE_Move_Up, int pixels)
 // - void(Mouse_Click) // Just click
 // - void(Mouse_Click, int x_position, int y_position) // Click on x, y Position
-
 // And Other ...
-
 // Code
+
 // Konečné pripojenie SD karty a Pro Micro
 // ------------------------------------
 // VCC -> VCC na SD karte
@@ -34,15 +33,21 @@
 #include "Keyboard.h"
 #include "Mouse.h"  // Pridáme podporu pre myš
 
-#define RED_LED 2    // RED LED Pin 2 na Pro Micro
-#define GREEN_LED 3  // GREEN LED Pin 3 na Pro Micro
-#define ORANGE_LED 4 // ORANGE LED Pin 4 na Pro Micro (indikuje spracovanie kódu)
+#define GREEN_LED 3  // GREEN LED Pin 3 na Pro Micro (označuje dokončenie)
+#define ORANGE_LED 4 // ORANGE LED Pin 4 na Pro Micro (označuje prebiehajúce spracovanie)
 
 File myFile;
 boolean first = true;
 String DEFAULT_FILE_NAME = "inject.txt";
 
 void setup() {
+  // Nastavíme piny pre LED diódy
+  pinMode(GREEN_LED, OUTPUT);
+  pinMode(ORANGE_LED, OUTPUT);
+
+  // Rozsvietime oranžovú LED, kód sa začína spracovávať
+  digitalWrite(ORANGE_LED, HIGH);
+
   // PIN CS JE na Pri Micro Pine číslo 10
   if (!SD.begin(10)) {
     return;
@@ -70,6 +75,10 @@ void setup() {
 
   Keyboard.end();
   Mouse.end();  // Ukončíme podporu myši po spracovaní
+
+  // Keď je kód ukončený, zhasneme oranžovú LED a rozsvietime zelenú
+  digitalWrite(ORANGE_LED, LOW);  // Zhasneme oranžovú LED
+  digitalWrite(GREEN_LED, HIGH);  // Rozsvietime zelenú LED (signalizuje ukončenie)
 }
 
 void Line(String l) {
