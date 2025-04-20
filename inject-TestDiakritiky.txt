@@ -1,0 +1,6 @@
+DELAY 2000
+STRING á š ahoj Y, y Z, z QwertyČau
+DELAY 1000
+ENTER
+DELAY 1000
+STRING mňam ovocie a zelenina.()[]":;,-'
