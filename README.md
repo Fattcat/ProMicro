@@ -38,3 +38,17 @@ Code for make DIY Rubber Ducky lacno
 - DELAY 1000
 - Mouse_Click_RIGHT
 
+# Setup for Duckify
+
+```
+git clone https://github.com/spacehuhntech/duckify
+cd duckify
+npm install
+npm start
+```
+
+# for windows setup
+### just download his duckify .zip file, then extract it, start cmd in folder where you extracted it
+- and just write ```npm install``` ```npm start``` then it should start new browser window like localhost:(HereSomePort)
+- Now **it should work properly**
+## Thanks to SpaceHuhn
